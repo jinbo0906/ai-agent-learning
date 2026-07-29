@@ -93,6 +93,7 @@ def main(argv: list[str] | None = None) -> int:
 
     cmd, args = argv[0], argv[1:]
     force = "--force" in args
+    all_stages = "--all" in args
     args = [a for a in args if not a.startswith("-")]
 
     if cmd == "start":
@@ -119,7 +120,7 @@ def main(argv: list[str] | None = None) -> int:
         if not args:
             print("用法：python -m attest check <N>")
             return 2
-        ok, _ = run(args[0])
+        ok, _ = run(args[0], all_stages=all_stages)
         return 0 if ok else 1
 
     if cmd == "ping":
