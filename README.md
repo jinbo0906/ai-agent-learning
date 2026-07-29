@@ -47,6 +47,7 @@ make snapshot CH=1          # 把 chapter1/context 快照到 evidence/ch01/lab/s
 
 # 3. 学习过程中随时（< 2 秒，零成本）
 make check CH=1             # 结构、占位符、证据可定位、密钥扫描
+python -m attest ping       # 验证 LLM 端点可用
 
 # 4. 全书总览
 make status
@@ -63,7 +64,7 @@ make status
 
 | | 内容 | 时长 |
 | --- | --- | ---: |
-| **Day 1** | 申请 API Key（推荐 GLM + Kimi 双备份）→ `make start CH=1` → 跑通 `chapter1/context` 的一个 task | 2h |
+| **Day 1** | `python -m attest ping` 确认 LLM 可用 → `make start CH=1` → 跑通 `chapter1/context` 的一个 task | 2h |
 | **Day 2** | 通读第 1 章（18,911 字 ≈ 47 分钟）→ 精读 + 概念图 + 回答 5 个必答问题 → **先自评四维分数** | 3h |
 | **Day 3** | 跑三组上下文消融 → 写 `report.md` → **实现 `check_numbers_grounded`**（测试已写好，`make test` 让它变绿） | 3h |
 
@@ -192,9 +193,9 @@ make status
 ## 成本
 
 全书约 **90 次 LLM 调用**（出题 / 评分 / 答辩 / 复习 / 重评），
-用 GLM / Kimi / DeepSeek，**总成本约 20–60 元人民币**。
+当前配置 DeepSeek-V3（腾讯 LKEAP），实测单次 ping 0.000026 元，**全书总成本预计远低于 60 元**。
 
-预算护栏就是 `.env` 里一个 `ATTEST_MONTHLY_BUDGET_CNY`，超了打印警告并停止——20 行代码。
+预算护栏就是 `.env` 里一个 `ATTEST_BUDGET_CNY`，超了打印警告并停止——20 行代码。
 
 ---
 
@@ -208,6 +209,7 @@ commit 数、代码行数、在线时长、阅读进度百分比。
 
 ## 相关文档
 
+- [**使用指南**](./docs/使用指南.md) —— Attest 详解、工程结构、一章的完整生命周期、你要亲手实现的部分
 - [完整学习方案](./docs/plan.md) —— 含对原方案的逐项评估、逐章要求、系统设计、产品化路径
 - [Attest 系统设计](./attest/README.md) —— 三层评估、威胁模型、v0→v3 版本路线
 - [证据包约定](./evidence/README.md) —— 目录结构与核心规则

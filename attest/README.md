@@ -106,16 +106,37 @@ evidence/chNN/                 ③ 证据包   —— 目录约定，与内容�
 ## 当前状态
 
 ```
-已实现 (v0 脚手架)
+已实现（v0 脚手架 —— 纯管道，无学习价值的部分）
   ✅ spec.py       课程规格 + 评分卡加载
   ✅ scaffold.py   attest start / snapshot —— 从规格实例化证据包
   ✅ check.py      attest check —— 第 1 层确定性检查（6/7 项）
+  ✅ llm.py        OpenAI 兼容客户端 + 成本记账 + 预算护栏 + attest ping
   ✅ __main__.py   CLI 骨架 + attest status
 
-待实现（按上表逐步长出来）
-  ⬜ check_numbers_grounded()   ← **Day 3 任务**，测试已写好，见下
-  ⬜ selfscore / quiz / grade / defend / review / board / publish
+留给你（这是学习内容，不是欠债）
+  ⬜ check_numbers_grounded()   ← Day 3 任务，测试已写好，见下
+  ⬜ selfscore / grade / defend  ← ch1 里程碑 v0
+  ⬜ quiz                        ← ch2
+  ⬜ review                      ← ch3 后
+  ⬜ board + Judge 校准          ← ch6 里程碑 v2.5
 ```
+
+`llm.py` 刻意做得很薄：**它没有任何评分逻辑**。Judge 怎么设计（prompt 组装、
+rubric 应用、证据引用、追问生成）是第 1/2/6 章的学习内容。给你这一层，
+只是因为写 HTTP 客户端没有学习价值，不该占用你的 7.5 小时。
+
+```python
+from attest.llm import chat
+r = chat([{"role": "user", "content": "..."}], tag="grade:ch01", json_mode=True)
+result = r.json()                      # 自动剥 ```json 围栏并解析
+r.cost_cny, r.latency_s, r.prompt_tokens
+```
+
+失败抛 `LLMError`（基础设施错误 —— 你的 `grade` 应捕获它并只写 `last_error`，
+不动分数），超预算抛 `BudgetExceeded`。
+
+各命令的设计 brief（输入输出、代码量、验收标准）见
+[使用指南 §4.3](../docs/使用指南.md)。
 
 ### Day 3 任务
 
@@ -143,7 +164,7 @@ python -m pytest attest/tests -v
 | 出题 / 评分 / 答辩 / 复习 / 重评 | ~8 次调用 | **~90 次** |
 
 用 GLM / Kimi / DeepSeek，**全书总成本约 20–60 元人民币**。
-预算护栏就是 `.env` 里一个 `ATTEST_MONTHLY_BUDGET_CNY`，超了打印警告并停止调用 —— 20 行代码。
+预算护栏就是 `.env` 里一个 `ATTEST_BUDGET_CNY`，超了打印警告并停止调用 —— 20 行代码。
 （原方案为控制这笔钱设计了原子预算账本、跨章共享预算、内容哈希缓存……投入产出比是负的。）
 
 ---

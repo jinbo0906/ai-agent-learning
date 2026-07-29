@@ -7,6 +7,7 @@
   snapshot N       把书中默认实验快照到 evidence/chNN/lab/src/
   check N          第 1 层确定性检查（<2 秒，零成本，随时可跑）
   status           全书进度与质量总览
+  ping             验证 LLM 端点、密钥、模型可用，并报告成本与延迟
 
 待实现（跟着学习进度长出来，见 attest/README.md）：
   selfscore N      先自评四维分数（在 grade 之前）—— 校准误差的输入
@@ -120,6 +121,11 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         ok, _ = run(args[0])
         return 0 if ok else 1
+
+    if cmd == "ping":
+        from .llm import ping
+        ping()
+        return 0
 
     if cmd == "status":
         cmd_status()
