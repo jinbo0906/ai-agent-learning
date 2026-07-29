@@ -1,0 +1,34 @@
+{
+  "unit": "ch04",
+  "status": "draft",
+  "started_at": null,
+  "done_at": null,
+  "self_score": {
+    "concepts": null,
+    "scenario": null,
+    "experiment": null,
+    "teachback": null
+  },
+  "judge_score": {
+    "concepts": null,
+    "scenario": null,
+    "experiment": null,
+    "teachback": null
+  },
+  "total": null,
+  "calibration_error": null,
+  "article_score": null,
+  "defense": {
+    "rounds": 0,
+    "completed": false
+  },
+  "attempts": 0,
+  "gates": {
+    "deterministic": null,
+    "defense": null,
+    "score": null
+  },
+  "review_due": [],
+  "last_error": null,
+  "attest_milestone": "v1.5"
+}

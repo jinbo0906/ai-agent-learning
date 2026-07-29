@@ -1,0 +1,32 @@
+# 间隔复习队列（方案 §5.7）
+#
+# 章节首次 done 后自动排期 D+2 / D+7 / D+21。
+# 错题也进这里 —— 同一错误连续出现两次时，不再生成相似题，
+# 而是要求补一个最小实验或反例解释。
+#
+# 由 `attest review` 读写（Attest v1 实现）。
+
+schema_version: 1
+
+# 已排期的复习
+scheduled: []
+# 示例：
+# - unit: ch01
+#   at: D+7
+#   due: 2026-08-12
+#   form: 一个新工程场景，必须调用本章 >=2 个概念
+#   status: pending          # pending | done | overdue
+#   score: null
+#   retention: null          # 得分 / 首次通过得分
+
+# 错题
+mistakes: []
+# 示例：
+# - unit: ch01
+#   error_concept: Harness 与模型能力的关系
+#   error_type: 因果倒置
+#   original_answer: "模型越强 Harness 越不重要"
+#   feedback: "模型变强扩大了可行动作空间，Harness 承担的约束与验证反而更多"
+#   next_review: 2026-08-05
+#   consecutive_correct: 0
+#   escalated: false         # 连续错 2 次 -> true，要求补最小实验或反例

@@ -1,0 +1,37 @@
+# 旗舰章选择（方案 §8：第 6 周执行，不预设）
+#
+# 为什么是第 6 周而不是第 4 周：按 18 周节奏，第 4 周只完成 1.5 章，
+# 数据不足以支撑选择。第 6 周有三章完整数据（四维分数、校准误差、实验难度实感）。
+#
+# 硬规则：每个子分必须引用**真实数据**（章节成绩 / 实验结果 / 校准误差 / Attest 需求）。
+#         没有证据只能记 0，不能用兴趣代替证据。
+
+schema_version: 1
+decided_at: null          # 填第 6 周的实际日期
+status: pending           # pending | decided | revised
+
+weights:
+  demo_relevance: 30      # 是否提供 Attest 不可替代的能力
+  gap_filling: 25         # 是否弥补当前实测短板
+  cross_chapter_transfer: 20
+  evidence_strength: 15
+  feasibility: 10
+
+# 每维 0–5 分，总分 = Σ(维度分 / 5 × 权重)，满分 100
+candidates: []
+# 示例：
+# - unit: ch08
+#   scores:
+#     demo_relevance: {score: 5, evidence: "Attest v3 自我进化闭环依赖本章，无替代"}
+#     gap_filling: {score: 3, evidence: "progress/board 显示实验证据维度均分最低 (68)"}
+#     cross_chapter_transfer: {score: 4, evidence: "同时用到 ch06 评估集与 ch07 更新载体"}
+#     evidence_strength: {score: 5, evidence: "trajectory-verifier 自带保留集与边界集"}
+#     feasibility: {score: 5, evidence: "正文最短 15,735 字，实验离线可跑"}
+#   total: 88
+#   selected: true
+
+selected: []              # 最终 3 个
+rationale: null
+
+# 第 12 周重算：候选分下降 >=15 分、投入超预算，或已有两章积压时，替换或缩减范围
+recomputed_at_week_12: null

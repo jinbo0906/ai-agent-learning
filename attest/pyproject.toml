@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "attest"
+version = "0.0.1"
+description = "证据驱动的学习监督系统 —— 同时是《深入理解 AI Agent》学习的综合 Demo"
+requires-python = ">=3.10"
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+# v0 之后逐步加入：openai / httpx（Judge）、jinja2（看板）、rich（终端）
+
+[project.scripts]
+attest = "attest.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

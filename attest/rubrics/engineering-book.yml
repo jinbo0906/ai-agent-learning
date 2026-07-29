@@ -1,0 +1,161 @@
+# ============================================================
+# Attest 评分卡（Rubric Card）
+# ------------------------------------------------------------
+# 与学科无关，可复用于任何"读技术书 + 做实验 + 写文章"的学习。
+# 对应学习方案 §5.3「三个可泛化抽象」之 ②
+#
+# 改动这个文件必须同步：
+#   1) 更新 version
+#   2) 在校准集上回放（Attest v2.5 之后）
+#   3) 记录到 progress/rubric-changelog.md
+# ============================================================
+
+schema_version: 1
+id: engineering-book
+version: v1
+total: 100
+
+# ------------------------------------------------------------
+# 四个维度（方案 §5.5）
+# ------------------------------------------------------------
+dimensions:
+
+  - id: concepts
+    name: 概念理解
+    weight: 25
+    min_ratio: 0.60          # 低于满分 60% 即 needs_work
+    evidence_from: [notes.md, "quiz.md#Part A"]
+    sub:
+      - {id: factual,   name: 事实准确, weight: 35}
+      - {id: causal,    name: 因果关系, weight: 30}
+      - {id: boundary,  name: 概念边界, weight: 20}
+      - {id: clarity,   name: 表达清晰, weight: 15}
+    anchors:
+      5: 能准确复述机制，并说明该机制在什么条件下不成立；对相邻概念给出可判别的区分标准
+      3: 概念正确但边界模糊；能说"是什么"，说不清"什么时候不是"
+      1: 只有术语，没有机制；或把书里的比喻当成机制本身
+    anti_patterns:
+      - 用术语解释术语（"上下文工程就是对上下文做工程"）
+      - 复述章节标题当作核心主张
+      - 把书中的类比当结论使用而不指出类比失效处
+
+  - id: scenario
+    name: 场景与代码
+    weight: 30
+    min_ratio: 0.60
+    evidence_from: ["quiz.md#Part B", lab/]
+    sub:
+      - {id: constraints, name: 需求与约束识别, weight: 20}
+      - {id: correctness, name: 方案正确性,     weight: 25}
+      - {id: executable,  name: 代码或架构可执行, weight: 25}
+      - {id: safety,      name: 安全与失败处理, weight: 15}
+      - {id: tradeoff,    name: 权衡和替代方案, weight: 15}
+    anchors:
+      5: 方案能落到可运行代码或明确接口；主动识别出题目没说的约束；给出至少一个被放弃的替代方案及放弃理由
+      3: 方案方向正确但缺少失败路径处理；只有正面流程
+      1: 只有概念性描述，无法据此实现；或直接套用书中示例而不适配新场景
+    anti_patterns:
+      - 把书里的示例代码改个变量名当作新场景方案
+      - 只写 happy path，不写超时、重试、越权、部分失败
+      - 列出"可以用 A 也可以用 B"但不给选择条件
+
+  - id: experiment
+    name: 实验证据
+    weight: 25
+    min_ratio: 0.60
+    evidence_from: [report.md, lab/results/summary.json, "quiz.md#Part C"]
+    sub:
+      - {id: hypothesis,   name: 可证伪假设,   weight: 15}
+      - {id: control,      name: 基线与变量控制, weight: 20}
+      - {id: reproducible, name: 结果可复现,   weight: 25}
+      - {id: interpret,    name: 数据解释,     weight: 20}
+      - {id: boundary,     name: 失败与适用边界, weight: 20}
+    anchors:
+      5: 假设可证伪；单一变量；结果机器可读且第三方可复现；解释指向系统机制而非现象；明确给出结论不成立的条件
+      3: 有基线有对照，但同时动了多个变量，或只报告平均值不报告分布与失败簇
+      1: 只有"跑通了"的截图；或结论与数据不匹配
+    anti_patterns:
+      - 报告里的数字在 summary.json 里找不到（确定性检查会直接拦截）
+      - 只保留成功轨迹，没有失败轨迹
+      - 把相关性直接当作因果性
+      - 在失败样本上调完参数就宣布改进有效（无保留集）
+
+  - id: teachback
+    name: 费曼讲解与反思
+    weight: 20
+    min_ratio: 0.60
+    evidence_from: ["quiz.md#Part D", defense.md]
+    sub:
+      - {id: no_jargon,  name: 不依赖术语堆砌, weight: 25}
+      - {id: example,    name: 能用例子解释,   weight: 25}
+      - {id: transfer,   name: 能迁移到新场景并在答辩中用证据纠错, weight: 25}
+      - {id: metacog,    name: 能指出自己认知的变化, weight: 25}
+    anchors:
+      5: 能对非本领域的人讲清楚；例子是自己的而不是书里的；答辩中能用自己的实验数据回应追问，必要时承认原判断错误
+      3: 讲解正确但仍依赖术语；例子直接来自书中
+      1: 讲解是章节摘要的换句话说；答辩回答泛泛，无法定位到自己的证据
+    anti_patterns:
+      - 答辩回答与提交内容无关（典型的 AI 代写信号）
+      - "我学到了很多"式的空泛反思
+      - 认知变化写成"更深入理解了 X"而不是"我原来以为 A，现在认为 B，因为 C"
+
+# ------------------------------------------------------------
+# 文章独立评分（不计入章节总分，只用于发布门）
+# ------------------------------------------------------------
+article_rubric:
+  total: 100
+  publish_threshold: 85
+  also_requires:
+    - 章节总分 >= 80
+    - 引用的代码和结果路径存在
+    - 复现命令通过
+    - 无事实性关键错误
+    - AI 辅助使用情况已披露
+    - 不含密钥、隐私数据
+  dimensions:
+    - {id: claim,    name: 事实准确与主张清晰, weight: 25}
+    - {id: evidence, name: 自有实验和结果证据, weight: 30}
+    - {id: mechanism,name: 机制解释与因果边界, weight: 20}
+    - {id: failure,  name: 失败案例、反例与适用范围, weight: 15}
+    - {id: form,     name: 结构、表达与复现说明, weight: 10}
+
+# ------------------------------------------------------------
+# 答辩协议（方案 §5.1 T1 —— 唯一真正防 AI 代写的机制）
+# ------------------------------------------------------------
+defense:
+  questions: 2
+  must_anchor_to:
+    - 提交中的一个具体主张
+    - 一个具体的代码或配置选择
+    - 一个具体的实验数字
+  forbidden:
+    - 通用问题（"你觉得本章最重要的是什么"）
+    - 能不看提交就回答的问题
+  answer_min_chars: 80
+  must_cite_own_evidence: true
+  examples:
+    - 你在实验中把成功率提升归因于上下文压缩，但延迟同时下降。如何排除请求长度减少之外的混杂因素？
+    - 你选择混合检索，但失败样本主要是时效冲突。为什么检索融合可以解决时效问题？
+    - 你的多 Agent 方案质量更高，但 token 是单 Agent 的三倍。等预算时结论还成立吗？
+
+# ------------------------------------------------------------
+# 元认知指标（方案 §5.6 —— 同事方案缺失的部分）
+# ------------------------------------------------------------
+metacognition:
+  calibration_error:
+    formula: mean(abs(self_score - judge_score))
+    collect: 每章在 grade 之前先 selfscore
+    interpretation:
+      "<5":   校准良好 —— 你清楚自己会什么
+      "5-12": 正常范围
+      ">12":  校准差 —— 系统性高估或低估自己，比分数本身更值得关注
+    trend_expectation: 应随周次下降
+
+# ------------------------------------------------------------
+# 明确不采纳的指标
+# ------------------------------------------------------------
+rejected_metrics:
+  - {metric: commit 数,   reason: 容易被优化，不代表学习质量}
+  - {metric: 代码行数,     reason: 同上}
+  - {metric: 在线时长,     reason: 同上}
+  - {metric: 阅读进度百分比, reason: 读了不等于会了；状态由证据齐套度决定}

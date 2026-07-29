@@ -1,0 +1,8 @@
+{
+  "source": "chapter1/context",
+  "source_repo": "..",
+  "upstream": "https://github.com/bojieli/ai-agent-book",
+  "target": "lab/src",
+  "mode": "snapshot",
+  "_note": "书中原始目录是只读基线；所有学习改动只写这份快照"
+}

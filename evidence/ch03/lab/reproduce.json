@@ -1,0 +1,10 @@
+{
+  "argv": [],
+  "cwd": ".",
+  "env_file": "../../../.env",
+  "expect": {
+    "results": "results/summary.json"
+  },
+  "timeout_seconds": 1800,
+  "_note": "填 argv 后 attest check 会在沙箱里执行它并比对 results"
+}

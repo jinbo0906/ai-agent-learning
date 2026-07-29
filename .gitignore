@@ -1,0 +1,42 @@
+# ---- 密钥：绝对不能进仓库 ----
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+env/
+build/
+dist/
+
+# ---- 实验产物：大文件与中间态 ----
+# summary.json 必须提交（它是证据）；原始 trace 和权重不提交
+evidence/*/lab/results/raw/
+evidence/*/lab/results/*.log
+evidence/*/lab/**/checkpoint*/
+evidence/*/lab/**/lora_model*/
+evidence/*/lab/**/*.safetensors
+evidence/*/lab/**/*.bin
+evidence/*/lab/**/*.pt
+evidence/*/lab/**/*.gguf
+evidence/*/lab/**/wandb/
+evidence/*/lab/**/audio/*.wav
+evidence/*/lab/**/.cache/
+evidence/*/lab/**/data/*.jsonl
+
+# ---- 生成物 ----
+progress/board.html
+
+# ---- 系统 ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -1,0 +1,690 @@
+# ============================================================
+# Attest 课程规格（Curriculum Spec）
+# ------------------------------------------------------------
+# 这是整个学习系统的单一事实源。
+# 换一本书 / 换一门课，只需要换这个文件 —— 引擎和证据包结构不变。
+#
+# 对应学习方案 §5.3「三个可泛化抽象」之 ①
+# ============================================================
+
+schema_version: 1
+
+meta:
+  id: ai-agent-book
+  title: 深入理解 AI Agent：设计原理与工程实践
+  author: 李博杰 (bojieli)
+  upstream: https://github.com/bojieli/ai-agent-book
+  # 书稿与配套实验所在仓库，相对于本仓库根目录
+  book_repo: ".."
+  learner: jinbo0906
+  profile: A            # A=稳健 18 周 / B=高强度 12 周 / C=轻量 12 周
+  weeks: 18
+  hours_per_week: 7.5
+  started_at: 2026-07-29
+  total_cjk_chars: 271577
+
+# ------------------------------------------------------------
+# 全局完成标准（每章都适用）
+# ------------------------------------------------------------
+completion_criteria:
+  - 六类产出齐套：notes / lab / report / article / quiz / defense
+  - attest check 全绿：无占位符、证据可定位、复现命令可执行、报告数字与 summary.json 一致、无密钥泄漏
+  - 实验含一个固定基线 + 一个主要变量，保存一条成功轨迹和一条失败轨迹
+  - 文章有一个可争辩的独立主张，且至少引用一个自己的实验数字
+  - 章节测试总分 >= 80，任一维度 >= 该维度满分的 60%
+  - 答辩完成（2 个追问均已作答并评分）
+
+# ------------------------------------------------------------
+# 门控（方案 §5.5）：只有 3 条判定，按顺序
+# ------------------------------------------------------------
+gates:
+  order:
+    - id: deterministic
+      rule: 第 1 层确定性检查失败 -> needs_work（不调用 LLM）
+    - id: defense
+      rule: 答辩未完成 -> needs_work
+    - id: score
+      rule: 总分 >= 80 且每维 >= 该维 60% -> done；否则 needs_work
+  excellent_threshold: 90     # done 且 >= 90 -> 进入旗舰候选池
+  infra_error: 不写分数，只写 last_error，保留上一次有效结果
+
+levels:
+  bronze: 十章证据齐套，>=8 章 done，平均分 >= 75
+  silver: 十章全部 done，平均分 >= 80，十篇文章过发布门，Attest 到 v2
+  gold:   silver + 3 个旗舰实验 + Attest 到 v3 + 总复盘 + D+21 保持率 >= 0.8
+
+# ------------------------------------------------------------
+# 间隔复习（方案 §5.7）
+# ------------------------------------------------------------
+review_schedule:
+  - {at: D+2,  form: 3 个概念辨析，每题需说明一个常见误解, minutes: 10}
+  - {at: D+7,  form: 1 个新工程场景，必须调用本章 >=2 个概念,   minutes: 15}
+  - {at: D+21, form: 1 个跨章迁移题，由已学后续章节生成,        minutes: 20}
+retention:
+  formula: 间隔测试得分 / 首次通过得分
+  good: 0.90
+  needs_review: 0.75          # < 0.75 回补学队列
+
+# ------------------------------------------------------------
+# 旗舰章选择（第 6 周执行，不预设）
+# ------------------------------------------------------------
+flagship:
+  decide_at_week: 6
+  count: 3
+  weights:
+    demo_relevance: 30        # 是否提供 Attest 不可替代的能力
+    gap_filling: 25           # 是否弥补当前实测短板
+    cross_chapter_transfer: 20
+    evidence_strength: 15
+    feasibility: 10
+  rule: 每维 0-5 分；每个子分必须引用真实数据（章节成绩 / 实验结果 / 校准误差），没有证据只能记 0
+
+# ============================================================
+# 十章单元
+# ============================================================
+units:
+
+  # ----------------------------------------------------------
+  - id: ch01
+    num: 1
+    title: AI Agent 基础
+    source: book/chapter1.md
+    cjk_chars: 18911
+    read_hours: 1.5
+    level: 入门
+    week: [1, 2]
+    objectives:
+      - 用自己的语言解释 Agent = LLM + 上下文 + 工具
+      - 从轨迹中定位模型 / 上下文 / 工具 / Harness 各自的作用
+      - 画出 ReAct 循环并解释轨迹增长带来的成本
+      - 区分工作流、自主 Agent 与混合模式的适用条件
+      - 理解模型选择、终止条件、护栏、人工接管与动态风险分级
+    must_answer:
+      - 模型很强时，为什么 Harness 的价值反而可能增加？
+      - Agent 和普通 LLM 调用的边界是什么？
+      - 哪些生产故障会让 ReAct 循环无限运行？
+      - 一个高风险工具的风险为何可能由参数而非工具名称决定？
+      - 哪些场景更适合受限动作空间？
+    default_lab:
+      path: chapter1/context
+      status: ok
+      note: 已内置 5 种 context mode，开箱即做消融
+    lab_requirements:
+      - 固定模型、任务集、采样参数、最大步数
+      - 比较至少三组配置：完整上下文 / 移除工具结果或历史轨迹 / 移除或弱化系统提示
+      - 记录成功率、平均步数、延迟、token、循环异常
+      - 解释每组结果背后的因果链
+    alternatives:
+      - chapter1/web-search-agent
+      - chapter1/search-codegen
+    article:
+      title: 模型不是 Agent：真正决定效果的 Harness 是什么
+      must_include:
+        - Agent 三要素关系图
+        - 一组自己的上下文消融数据
+        - 一个无限循环或假完成案例
+        - 工作流与自主 Agent 的选择框架
+    pass_criteria:
+      - 能对一条陌生 Agent 轨迹做组件归因
+      - 消融实验配置可比较
+      - 对失败原因的解释与日志一致
+      - 能提出终止、重试、人工移交和风险控制策略
+    quiz_anchors:
+      - 用一条完整轨迹解释模型、上下文、工具和 Harness 的不同职责
+      - “模型即 Agent”与“Harness 更重要”为什么不矛盾？
+      - 工作流和自主 Agent 的核心差别是什么？
+    attest_milestone:
+      version: v0
+      what: Agent 循环骨架 —— 读证据（工具）→ 调 LLM 判分（模型）→ 写结果（工具）；终止条件、重试、预算
+      uses: 第 1 章 Harness
+    connects_to: []
+
+  # ----------------------------------------------------------
+  - id: ch02
+    num: 2
+    title: 上下文工程
+    source: book/chapter2.md
+    cjk_chars: 33978
+    read_hours: 2.5
+    level: 入门
+    week: [3, 4]
+    objectives:
+      - 从 API 消息 / Chat Template / token / KV Cache 四层解释上下文
+      - 区分 KV Cache 与 Prompt Cache
+      - 理解稳定前缀、动态信息、工具列表与缓存命中的关系
+      - 能设计系统提示、动态提示、Agent Skills 和状态栏
+      - 理解提示注入、上下文污染、压缩损失与子 Agent 隔离
+    must_answer:
+      - 为什么滑动窗口可能让 Agent 重复调用工具？
+      - 如何在不破坏稳定前缀的前提下控制长期轨迹？
+      - Prompt 的多人维护为什么会产生“熵增”？
+      - 如果模型不知道自己不知道什么，Skill 如何被正确触发？
+      - 哪些信息应保留原文，哪些适合摘要，哪些应隔离到子 Agent？
+    default_lab:
+      path: chapter2/context-compression
+      status: warn
+      note: ★★★ 难度，API 消耗较大，先设预算
+    lab_requirements:
+      - 同一任务集与模型
+      - 比较无压缩 / 摘要 / 关键信息提取 / 语义压缩
+      - 记录 token 降幅、任务保持率、延迟、成本
+      - 至少加入一个依赖早期细节的长程任务（关键：没有它压缩看起来永远是好的）
+      - 标记压缩后发生的信息丢失类型
+      - 给出“何时不应继续压缩”的停止条件
+    alternatives:
+      - chapter2/kv-cache
+      - chapter2/prompt-injection
+    article:
+      title: 上下文不是聊天记录：Agent 的真正运行时
+      must_include:
+        - 一张 “API 消息 -> Chat Template -> token -> KV Cache” 数据流图
+        - 至少一组压缩或缓存对照数据
+    pass_criteria:
+      - 能解释动态系统信息为什么会破坏缓存
+      - 至少比较三种上下文策略
+      - 能指出不可逆压缩风险
+      - 结论不把 token 减少直接等同于质量提升
+    quiz_anchors:
+      - KV Cache 与 Prompt Cache 的作用层级有什么不同？
+      - 为什么滑动窗口可能让 Agent 重复执行相同工具？
+      - 压缩和子 Agent 隔离分别解决什么问题？
+    attest_milestone:
+      version: v0.5
+      what: 分层上下文 —— 稳定前缀（rubric + 课程规格）+ 动态部分（本章证据）；实测缓存命中的成本下降
+      uses: 第 2 章 KV Cache / 稳定前缀
+    connects_to:
+      - {unit: ch01, topic: ReAct 与 Harness}
+
+  # ----------------------------------------------------------
+  - id: ch03
+    num: 3
+    title: 用户记忆和知识库
+    source: book/chapter3.md
+    cjk_chars: 27936
+    read_hours: 2.0
+    level: 进阶
+    week: [5, 6]
+    positioning: 学习者已有较深 RAG 经验，本章不接受“向量数据库是什么”式基础复述。重点转向记忆写入与冲突、知识时效与治理、混合检索失败边界、结构化索引、Agentic RAG 元认知、可验证检索、隐私与遗忘语义。
+    objectives:
+      - 区分会话上下文、用户记忆和外部知识
+      - 设计记忆的写入、检索、更新、冲突、删除和过期策略
+      - 比较稠密、稀疏、混合、重排序、RAPTOR、GraphRAG 和文件系统范式
+      - 理解多模态信息转文本时的保真度损失
+      - 能设计 Agentic RAG 的搜索触发、停止和证据校验机制
+    must_answer:
+      - 用户两次提供冲突地址时，记忆系统如何处理？
+      - 如何把信息质量、时效和来源可信度引入检索？
+      - Agent 不知道自己不知道什么时，如何触发搜索？
+      - 什么查询更适合 RAPTOR，什么查询更适合 GraphRAG？
+      - 强基座模型是否会让领域知识库消失？
+    default_lab:
+      path: chapter3/retrieval-pipeline
+      status: ok
+      note: 已含 dense+sparse+fusion+rerank 与离线 evaluate.py
+    lab_requirements:
+      - 建立 >=12 个有区分度的查询，需覆盖词汇精确匹配 / 语义改写 / 跨段信息 / 时效冲突四类
+      - 比较稠密 / BM25 / 混合 / 神经重排序
+      - 记录 Recall@k、NDCG/MRR、延迟、成本
+      - 给出错误分类
+      - 对至少一个失败类型实施改进并用保留集验证（没有保留集就是在失败样本上过拟合）
+    budget_note: 12 个查询需要自己构造，项目不自带。单独预留 1 小时做查询集设计 —— 这一小时的质量决定整个实验的质量。
+    alternatives:
+      - chapter3/agentic-rag
+      - chapter3/structured-index
+      - chapter3/contextual-retrieval
+      - chapter3/user-memory-evaluation
+    article:
+      title: 做过 RAG 之后，我认为真正难的是知识治理与可验证检索
+      must_include:
+        - 至少三个真实或合成失败案例
+        - 检索指标与生成答案质量的区别
+        - 时效、冲突和删除语义
+        - 一项超越基础 RAG 的改进
+        - 个人已有实践与本章观点的冲突或修正
+    pass_criteria:
+      - 不只报告“命中了”，还报告排序与最终答案证据
+      - 能描述数据治理生命周期
+      - 能解释 Agentic RAG 的收益与额外风险
+      - 有保留集，避免只在失败样本上过拟合
+    quiz_anchors:
+      - 用户记忆和知识库为什么不能共用完全相同的生命周期？
+      - RAPTOR 与 GraphRAG 分别适合哪些查询？
+      - Agentic RAG 的元认知缺陷是什么？
+    attest_milestone:
+      version: v1
+      what: 证据检索 —— 书稿 + 十章笔记建索引，Judge 打分必须引用原文位置
+      uses: 第 3 章 混合检索 + 重排
+    connects_to:
+      - {unit: ch02, topic: 上下文预算与压缩}
+
+  # ----------------------------------------------------------
+  - id: ch04
+    num: 4
+    title: 工具
+    source: book/chapter4.md
+    cjk_chars: 27814
+    read_hours: 2.0
+    level: 进阶
+    week: [7, 8]
+    objectives:
+      - 区分感知、执行和协作工具
+      - 评价工具粒度、通用性、描述质量和参数保真
+      - 理解 MCP 的价值和协议边界
+      - 理解事件驱动异步、运行中打断、长任务取消和优先级队列
+      - 设计虚拟身份、权限、审批和隔离执行
+    must_answer:
+      - MCP 最需要补足的复杂交互能力是什么？
+      - 语义优先级应该由规则还是 LLM 判断？
+      - 多个相似工具如何选择？
+      - Agent 何时应使用独立身份，何时可代表用户？
+      - 除主动发现外，还能如何应对工具爆炸？
+    default_lab:
+      path: chapter4/active-tool-discovery
+      status: ok
+    lab_requirements:
+      - 比较全量注入工具 Schema 与按需发现
+      - 覆盖简单、组合、歧义三类任务
+      - 记录 prompt token、正确工具率、误选率、延迟、成本
+      - 分析至少一个由工具描述或参数设计造成的失败
+      - 说明工具发现何时反而增加总成本（最容易被跳过、也最有价值的结论）
+    alternatives:
+      - chapter4/async-agent
+      - chapter4/agent-with-event-trigger
+      - chapter4/execution-tools
+    article:
+      title: 工具越多，Agent 越强吗？从工具发现看能力与上下文的矛盾
+      must_include:
+        - 工具数量 x 任务复杂度的二维对照数据
+        - 一个由工具描述质量造成的失败案例
+    pass_criteria:
+      - 能为一个工具 Schema 提出可测量的改进
+      - 实验覆盖工具数量与任务复杂度两个维度
+      - 能设计高风险操作的二次确认
+      - 能解释同步模型如何服务异步 Agent
+    quiz_anchors:
+      - 工具粒度过粗和过细分别有什么后果？
+      - MCP 标准化解决了什么，又可能限制什么？
+      - 主动工具发现为何能降低上下文成本，也可能增加执行成本？
+    attest_milestone:
+      version: v1.5
+      what: 工具化 —— check/quiz/grade/defend 变成工具 + 主动发现；用自己的系统做本章实验，对比全量注入 vs 按需发现的真实 token
+      uses: 第 4 章 工具设计 / 主动发现
+    connects_to:
+      - {unit: ch01, topic: 动作空间}
+      - {unit: ch02, topic: 工具 Schema 与上下文成本}
+
+  # ----------------------------------------------------------
+  - id: ch05
+    num: 5
+    title: Coding Agent 与代码生成
+    source: book/chapter5.md
+    cjk_chars: 29640
+    read_hours: 2.0
+    level: 高级
+    week: [9, 10]
+    objectives:
+      - 解释代码为什么是 Agent 的元能力
+      - 理解搜索、编辑、执行、测试、调试和恢复闭环
+      - 理解 Sessionless 设计、安全沙箱、工件模式和最小权限
+      - 能从轨迹判断失败发生在规划、工具、环境还是验证
+      - 评价“代码即规则 / 适配器 / UI”的边界
+    must_answer:
+      - 沙箱安全与能力之间如何取舍？
+      - Agent 如何区分应适应的新格式和应上报的异常？
+      - 提议者—审核者为何可能收敛到错误偏好？
+      - 自动沉淀的规则如何做垃圾回收？
+      - “代码即规则”比自然语言规则强在哪里，又弱在哪里？
+    default_lab:
+      path: chapter5/coding-agent
+      status: ok
+    lab_requirements:
+      - 选一个有明确自动测试的小型修复任务
+      - 保存初始失败、Agent 轨迹、补丁、最终测试结果
+      - 至少展示一次搜索、编辑、执行和验证
+      - 记录步数、token、时间、重试
+      - 分析一个无效动作或错误假设
+    alternatives:
+      - chapter5/log-diagnosis
+    article:
+      title: 代码为什么是通用 Agent 的元工具：从生成到验证
+      must_include:
+        - 测试先失败、修复后通过的完整证据链
+        - 一次无效动作或错误假设的归因分析
+    pass_criteria:
+      - 代码在隔离环境运行
+      - 有“测试先失败、修复后通过”的证据（只有最终成功截图不算）
+      - 有回归测试
+      - 能说明 Artifact 模式的安全边界
+    quiz_anchors:
+      - 为什么代码是元能力，而不仅是另一种工具？
+      - Artifact 模式为何节省 token，又引入哪些安全风险？
+      - 一次成功补丁为什么不等于持续进化？
+    attest_milestone:
+      version: v2
+      what: 复现检查器 —— 沙箱内执行 reproduce、跑测试、比对 summary.json
+      uses: 第 5 章 生成—执行—验证闭环
+    connects_to:
+      - {unit: ch04, topic: 执行工具与安全}
+
+  # ----------------------------------------------------------
+  - id: ch06
+    num: 6
+    title: Agent 的评估
+    source: book/chapter6.md
+    cjk_chars: 26513
+    read_hours: 2.0
+    level: 高级
+    week: [11, 12]
+    objectives:
+      - 设计任务数据集、环境、指标、基线和报告
+      - 区分任务成功、过程质量、成本、延迟和安全指标
+      - 理解 LLM-as-a-Judge 的偏差、校准和一致性
+      - 理解配对比较、ELO、统计显著性和置信区间
+      - 能从 benchmark 结果形成假设并设计消融
+    must_answer:
+      - LLM Judge 可能有哪些系统性盲区？
+      - 如何让公开 benchmark 抵抗训练数据泄漏？
+      - 主观维度的 Rubric 如何提高可靠性？
+      - 在有限预算下如何最大化评估信息量？
+      - 为什么成功率提升不一定意味着系统更好？
+    default_lab:
+      path: chapter6/public-health-reporting-eval
+      status: fix
+      note: "【修正 B】该项目 README 明确只有 5 个确定性任务，而评估集 >=20 才有统计意义"
+    fix:
+      id: B
+      problem: 方案要求 >=20 任务，默认实验只有 5 个
+      resolution: 把“扩展任务集”本身作为本章核心实验，单独预留 2 小时
+      steps:
+        - "0.5h：跑通原 5 个任务，理解六分制评分器（工具选择 1 / 参数 1 / 答案 2 / 证据 1 / 接地与安全 1）"
+        - "1.5h：扩到 20 个任务，必须难度分层 —— >=5 个单工具直答、10 个需组合或多步、5 个有歧义或需拒答。新增任务必须保留确定性验证器，不能全交给 LLM Judge"
+        - "第 3 步：至少比较两个系统配置，抽样人工复核 Judge，报告成本与不确定性"
+      bonus: 扩展后的任务集是可分享的成果，也是 Attest v2.5 校准集的来源
+    lab_requirements:
+      - 明确任务分布和难度
+      - 同时使用客观验证与语言 Rubric
+      - 记录任务成功、工具调用、计算准确性、证据引用、无依据声明
+      - 对至少两个系统配置做比较
+      - 抽样人工复核 Judge
+      - 报告运行成本和不确定性
+    alternatives:
+      - chapter6/model-benchmark
+      - chapter6/agent-cost-analysis
+      - chapter6/tts-quality-eval
+    article:
+      title: Agent 评估不是排行榜，而是工程反馈控制系统
+      must_include:
+        - 20 任务评估集的难度分层设计
+        - Judge 与人工复核的不一致量化
+    pass_criteria:
+      - 数据集与优化样本隔离
+      - 指标能映射到具体改进动作
+      - Rubric 含正反例
+      - 对 Judge 做过人工校准
+      - 报告成本与置信度
+      - 不以单一平均分掩盖失败簇
+    quiz_anchors:
+      - LLM-as-a-Judge 有哪些系统性偏差？
+      - 为什么总体平均分可能掩盖严重问题？
+      - 评估数据、仿真环境和后训练数据如何保持边界？
+    attest_milestone:
+      version: v2.5
+      critical: true
+      what: "Judge 校准（全书最关键的一次集成）—— 用前五章历史评分建校准集，测自洽性 / 位置偏差 / 长度偏差。这一步让系统从玩具变可信"
+      uses: 第 6 章 评估方法论（100% 用上）
+    connects_to:
+      - {unit: ch01, topic: 可验证行为}
+      - {unit: ch05, topic: 可验证行为}
+
+  # ----------------------------------------------------------
+  - id: ch07
+    num: 7
+    title: 模型后训练
+    source: book/chapter7.md
+    cjk_chars: 37344
+    read_hours: 3.0
+    level: 专家
+    week: [13, 14]
+    note: 正文全书最长
+    objectives:
+      - 解释预训练、SFT 和 RL 的目标与数据差异
+      - 判断能力应写入上下文、Skill、程序、知识库还是参数
+      - 理解数据质量、环境、奖励和算法的优先级
+      - 理解多轮信用分配、过程奖励和结果奖励
+      - 识别灾难性遗忘、reward hacking 和评估集污染
+    must_answer:
+      - 何时应从 SFT 切换到 RL？
+      - 如何决定一项能力进入参数还是上下文？
+      - Agentic 轨迹中哪些 token 应学习，哪些不应学习？
+      - 多轮任务的奖励如何归因？
+      - 如何同时提升目标能力并保护通用能力？
+    default_lab:
+      path: null
+      status: fix
+      note: "【修正 A】原方案强制 chapter7/continued-pretraining，但其 README 要求 Mistral-7B + 24GB 显存，与“0.6B-1.5B 小模型”自相矛盾。改为按算力三选一"
+    fix:
+      id: A
+      problem: 强制默认基线需要 24GB 显存，与方案自述的小模型要求冲突，无卡者被硬卡死
+      hard_requirements:
+        - 有真实的前向、反向、参数更新（不接受伪代码，不接受只贴训练日志样例）
+        - 训练前后使用同一套评估，同时报告目标能力和能力保留集
+        - "记录：数据来源与过滤、学习率/batch/步数/随机种子、训练时长与显存、训练 loss、目标任务变化、保留集变化、至少一个失败或退化案例"
+      paths:
+        - id: P1
+          condition: 有 >=24GB GPU（RTX 4090 / A100）
+          lab: chapter7/continued-pretraining
+          how: 沿用原路径（Mistral-7B + LoRA + 韩语续训 -> SFT），自带三阶段对比脚本和灾难性遗忘处理，最完整
+        - id: P2
+          condition: 有 8-16GB GPU 或云 Notebook（推荐大多数人）
+          lab: chapter7/cot-distillation
+          how: 换基座为 Qwen2.5-0.5B 或 1.5B 做 LoRA SFT，50-200 步。数据用 cot-distillation 生成并规则过滤。目标能力选一个可自动验证的窄任务（如固定格式工具调用生成），保留集用通用问答 20 题
+        - id: P3
+          condition: 完全无 GPU
+          lab: chapter7/MiniMind-pretrain
+          how: 训一个极小模型（几十 M 参数），CPU 可跑通完整预训练->SFT。任务效果差但参数更新真实，能亲眼看到 loss 下降与灾难性遗忘
+          better: 强烈建议改租按小时 GPU（约 2-4 元/小时，本实验 3 小时内完成，总成本 <15 元）走 P2
+    article:
+      title: 能力应该写进权重，还是留在上下文、Skill 与程序里？
+      must_include:
+        - 训练前后同一评估的目标集与保留集对照
+        - 一个失败或退化案例
+    pass_criteria:
+      - 有真实训练或微调代码路径
+      - 训练前后使用相同评估
+      - 同时报告目标能力和保留能力
+      - 不用训练 loss 代替任务效果
+      - 能解释数据、环境、奖励和算法的优先级
+      - 能识别评估泄漏和 reward hacking 风险
+    quiz_anchors:
+      - SFT 与 RL 的学习信号本质上有何不同？
+      - 什么能力应进入参数，什么能力应留在上下文或程序？
+      - Agentic 模型蒸馏与普通 Chat 蒸馏有何不同？
+    attest_milestone:
+      version: v2.8
+      optional: true
+      what: 小模型预筛 —— 0.5B 判“是否占位 / 是否空泛”，大模型只处理通过预筛的。正好是本章核心取舍：这项能力该放进参数还是放进上下文
+      uses: 第 7 章 能力载体选择
+    connects_to:
+      - {unit: ch06, topic: 评估集与信号}
+
+  # ----------------------------------------------------------
+  - id: ch08
+    num: 8
+    title: Agent 的持续进化
+    source: book/chapter8.md
+    cjk_chars: 15735
+    read_hours: 1.5
+    level: 专家
+    week: [15]
+    note: 正文全书最短，但实验最有价值 —— 旗舰章最强候选之一
+    objectives:
+      - 从运行轨迹中提取可信学习信号
+      - 比较把经验写入知识、指令、程序和参数的边界
+      - 设计验证、灰度、发布和回滚
+      - 区分“任务完成”“指标提升”和“能力进化”
+      - 划分可修改组件与不可修改的可信根
+    must_answer:
+      - 新失败是推翻旧经验，还是改变适用条件？
+      - 为什么用户满意度不能作为唯一学习信号？
+      - 同一问题何时改 Prompt、Harness 还是参数？
+      - 自修改系统中什么必须保持不可修改？
+      - 经验知识库如何版本化、淘汰和解决冲突？
+    default_lab:
+      path: chapter8/trajectory-verifier
+      status: ok
+      note: 第一步用它，第二步再从 alternatives 里选一个
+    lab_requirements:
+      - "第一步：对成功 / 部分成功 / 失败三类轨迹生成带证据的诊断，区分环境结果、过程规则、语言 Rubric，检查诊断是否引用真实轨迹位置"
+      - "第二步：从 alternatives 选一个，必须比较更新前后，包含保留集、边界集和回滚"
+    alternatives:
+      - chapter8/prompt-auto-optimization
+      - chapter8/self-modifying-agent
+      - chapter8/self-evolution-eval
+    article:
+      title: Agent 持续进化的起点不是自修改，而是可信学习信号
+      must_include:
+        - 更新前后 + 保留集 + 边界集的三方对照
+        - 一次回滚记录
+    pass_criteria:
+      - 更新建议能追溯到轨迹证据
+      - 改进在保留集上无不可接受退化
+      - 更新产物有版本
+      - 可以回滚
+      - 不允许 Agent 修改批准自身更新的可信根
+    quiz_anchors:
+      - 如何判断新失败推翻了旧经验，还是改变了适用条件？
+      - 知识、指令、程序和参数分别适合承载什么更新？
+      - 什么是不可修改的可信根？
+    attest_milestone:
+      version: v3
+      what: 自我进化闭环 —— 从十章历史评分轨迹自动提 rubric/prompt 改进 -> 校准集验证 -> 发布或回滚；可信根（评分公式、门控规则、校准集）标记为不可自动修改
+      uses: 第 8 章 持续进化
+    connects_to:
+      - {unit: ch06, topic: 可靠评估}
+      - {unit: ch07, topic: 更新载体}
+
+  # ----------------------------------------------------------
+  - id: ch09
+    num: 9
+    title: 多模态与实时交互
+    source: book/chapter9.md
+    cjk_chars: 23445
+    read_hours: 1.8
+    level: 应用
+    week: [16]
+    objectives:
+      - 比较级联语音、端到端 Omni 和全双工交互
+      - 理解流式感知、快慢思考和延迟预算
+      - 理解 Computer Use 的动作空间、视觉定位和连续感知
+      - 理解机器人中的规划、控制、动作分块和 Sim2Real
+      - 设计不可逆行动的安全门
+    must_answer:
+      - 端到端语音模型如何做可观测性？
+      - “边想边说”应在多大程度上模仿人类？
+      - GUI 结构化定位失败时如何回退？
+      - 离散截图循环如何扩展到连续视觉流？
+      - 快思考如何避免造成不可逆后果？
+    default_lab:
+      path: chapter9/streaming-speech
+      status: fix
+      note: "【修正 C】其 README 明确必须用 OpenAI 直连 Key（whisper-1 / tts-1），OpenRouter 无音频端点无法回退。原方案只字未提"
+    fix:
+      id: C
+      problem: 默认实验需要 OpenAI 直连 Key；--offline 模式无真实 ASR 延迟，指标会是空的
+      decision_tree:
+        - condition: 有 OpenAI 直连 Key
+          action: 原路径，全部指标真实
+        - condition: 无 OpenAI Key，但有国内 ASR（阿里 / 讯飞 / 硅基流动 SenseVoice）
+          action: 改造 streaming-speech 的 ASR 后端，机制不变（按递增前缀切片 + 逐片识别）。这个改造本身就是很好的实验证据，比直接跑通原版更能证明理解了机制
+        - condition: 都没有
+          action: 改用 chapter9/controllable-tts 或 live-audio，把“延迟 vs 质量”权衡换到 TTS 侧。--offline 仅用于验证切片逻辑，不作为指标来源
+    lab_requirements:
+      - 比较整段识别与递增流式识别（或等价的两个架构基线）
+      - 记录首个可用文本延迟、最终延迟、识别质量、资源开销
+      - 使用短句、长句、噪声、中途修正等样本
+      - 分析低延迟与稳定性的取舍
+    alternatives:
+      - chapter9/controllable-tts
+      - chapter9/live-audio
+      - chapter9/end-to-end-speech
+    article:
+      title: 多模态 Agent 的核心瓶颈不是“看见和听见”，而是时间与控制
+      must_include:
+        - 两个架构基线的延迟 / 质量对照
+        - 一个因过早决策造成的错误案例
+    pass_criteria:
+      - 有至少两个架构基线
+      - 指标同时覆盖延迟、质量和安全
+      - 能描述级联与端到端的调试差异
+      - 能为快思考行动设计风险门
+      - 不把“可运行”直接等同于“可实时使用”
+    quiz_anchors:
+      - 级联、端到端和全双工语音架构的核心权衡是什么？
+      - Computer Use 的结构化定位和纯视觉定位如何互补？
+      - 动作分块为何提高效率，又降低环境响应性？
+    attest_milestone:
+      version: v3+voice
+      optional: true
+      what: 语音答辩 —— 费曼讲解改为语音提交，ASR 转写后评分。口头解释比打字快 3 倍，且更难提前准备、更难让 AI 代写
+      uses: 第 9 章 流式语音
+    connects_to:
+      - {unit: ch01, topic: 感知—思考—行动循环}
+
+  # ----------------------------------------------------------
+  - id: ch10
+    num: 10
+    title: 多 Agent 协作
+    source: book/chapter10.md
+    cjk_chars: 30261
+    read_hours: 2.2
+    level: 应用
+    week: [17]
+    objectives:
+      - 以“上下文共享/隔离”和“协作拓扑”分析多 Agent
+      - 判断何时多 Agent 真正优于单 Agent
+      - 理解管理者、对等移交、并行搜索和角色转换
+      - 设计级联终止、并发控制和文件系统治理
+      - 用等量预算做公平对照
+    must_answer:
+      - 如何检测共享上下文造成的角色思维惯性？
+      - 如何验证 Manager 的任务分解质量？
+      - Agent 组织可能出现哪些“组织病”？
+      - 一个子 Agent 成功后如何让其他任务安全停止？
+      - 等量计算下，多 Agent 的真正优势在哪里？
+    default_lab:
+      path: chapter10/parallel-web-research
+      status: ok
+      note: 离线可跑（模拟信息源 + 可选 LLM），非常适合做等预算对照
+    lab_requirements:
+      - 相同任务比较单 Agent 与多 Agent
+      - 尽量归一化 token / 时间 / 费用预算（这是实验成立的前提，不归一化的对比没有意义）
+      - 记录质量、延迟、成本、重复工作、取消效果
+      - 至少测试一个“早期命中后级联终止”场景
+      - 至少分析一个错误级联或信息冲突案例
+    alternatives:
+      - chapter10/staged-system-prompt
+      - chapter10/multi-role-transfer
+    article:
+      title: 多 Agent 何时才值得：隔离、并行与治理的真实收益
+      must_include:
+        - 等预算下的单 vs 多 Agent 对照
+        - 协调成本与重复工作的量化
+    pass_criteria:
+      - 与单 Agent 的对照预算公平
+      - 说明多 Agent 的收益来源
+      - 测试通信、终止和并发冲突
+      - 不以“角色数量更多”作为效果证据
+      - 能设计预算感知策略
+    quiz_anchors:
+      - 共享上下文和隔离上下文分别会带来什么系统性风险？
+      - Manager 的能力为何可能成为整个系统的上限？
+      - 多 Agent 相对单 Agent 的不可替代优势是什么？
+    attest_milestone:
+      version: v3+panel
+      optional: true
+      what: 多 Judge 仲裁 —— 三个独立 Judge 打分 + 分歧仲裁 vs 单 Judge 打三次取均值，在等 token 预算下比较哪个与人工评分更一致
+      uses: 第 10 章 多 Agent 等预算对照
+    connects_to:
+      - {unit: ch02, topic: 上下文共享与隔离}
+      - {unit: ch04, topic: 协作工具}
+      - {unit: ch06, topic: 评估}
