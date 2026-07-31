@@ -77,41 +77,41 @@ def main():
     print(demo_task)
     print("-"*40)
     
-    # Run with full context (baseline)
-    print("\n🚀 Running agent with FULL context...")
-    agent_full = ContextAwareAgent(api_key, ContextMode.FULL, provider=provider)
-    result_full = agent_full.execute_task(demo_task)
-    
-    print("\n✨ Results with FULL Context:")
-    print(f"Success: {result_full.get('success', False)}")
-    print(f"Tool calls made: {len(result_full['trajectory'].tool_calls)}")
-    print(f"Iterations: {result_full.get('iterations', 0)}")
-    
-    if result_full.get('final_answer'):
-        print(f"\nFinal Answer:")
-        print("-"*40)
-        print(result_full['final_answer'])
-    
-    # # Demonstrate context ablation effect
-    # print("\n" + "="*60)
-    # print("DEMONSTRATING CONTEXT ABLATION")
-    # print("="*60)
+    # # Run with full context (baseline)
+    # print("\n🚀 Running agent with FULL context...")
+    # agent_full = ContextAwareAgent(api_key, ContextMode.FULL, provider=provider)
+    # result_full = agent_full.execute_task(demo_task)
     #
-    # print("\n🔬 Running same task with NO TOOL RESULTS context...")
-    # print("(Agent won't see the results of its tool calls)")
+    # print("\n✨ Results with FULL Context:")
+    # print(f"Success: {result_full.get('success', False)}")
+    # print(f"Tool calls made: {len(result_full['trajectory'].tool_calls)}")
+    # print(f"Iterations: {result_full.get('iterations', 0)}")
     #
-    # agent_ablated = ContextAwareAgent(api_key, ContextMode.NO_TOOL_RESULTS, provider=provider)
-    # result_ablated = agent_ablated.execute_task(demo_task)
-    #
-    # print("\n⚠️ Results with NO TOOL RESULTS:")
-    # print(f"Success: {result_ablated.get('success', False)}")
-    # print(f"Tool calls made: {len(result_ablated['trajectory'].tool_calls)}")
-    # print(f"Iterations: {result_ablated.get('iterations', 0)}")
-    #
-    # if result_ablated.get('final_answer'):
-    #     print(f"\nFinal Answer (likely incorrect):")
+    # if result_full.get('final_answer'):
+    #     print(f"\nFinal Answer:")
     #     print("-"*40)
-    #     print(result_ablated['final_answer'][:500] + "...")
+    #     print(result_full['final_answer'])
+    
+    # Demonstrate context ablation effect
+    print("\n" + "="*60)
+    print("DEMONSTRATING CONTEXT ABLATION")
+    print("="*60)
+
+    print("\n🔬 Running same task with NO TOOL RESULTS context...")
+    print("(Agent won't see the results of its tool calls)")
+
+    agent_ablated = ContextAwareAgent(api_key, ContextMode.NO_TOOL_RESULTS, provider=provider)
+    result_ablated = agent_ablated.execute_task(demo_task)
+
+    print("\n⚠️ Results with NO TOOL RESULTS:")
+    print(f"Success: {result_ablated.get('success', False)}")
+    print(f"Tool calls made: {len(result_ablated['trajectory'].tool_calls)}")
+    print(f"Iterations: {result_ablated.get('iterations', 0)}")
+
+    if result_ablated.get('final_answer'):
+        print(f"\nFinal Answer (likely incorrect):")
+        print("-"*40)
+        print(result_ablated['final_answer'][:500] + "...")
     #
     # # Summary
     # print("\n" + "="*60)
