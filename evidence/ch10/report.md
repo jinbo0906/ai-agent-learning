@@ -1,6 +1,6 @@
 # 第 10 章 · 多 Agent 协作 — 实验记录
 
-> 默认实验：[`chapter10/parallel-web-research`](../../chapter10/parallel-web-research/) ✅ —— 离线可跑（模拟信息源 + 可选 LLM），非常适合做等预算对照
+> 默认实验：[`chapter10/parallel-web-research`](../../../chapter10/parallel-web-research/) ✅ —— 离线可跑（模拟信息源 + 可选 LLM），非常适合做等预算对照
 > ⚠️ 这里出现的**每个数字**都要能在 `lab/results/summary.json` 里找到。
 
 ## 我跑了什么

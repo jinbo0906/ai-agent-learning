@@ -1,6 +1,6 @@
 # 第 1 章 · AI Agent 基础 — 实验记录
 
-> 默认实验：[`chapter1/context`](../../chapter1/context/) ✅ —— 已内置 5 种 context mode，开箱即做消融
+> 默认实验：[`chapter1/context`](../../../chapter1/context/) ✅ —— 已内置 5 种 context mode，开箱即做消融
 > ⚠️ 这里出现的**每个数字**都要能在 `lab/results/summary.json` 里找到。
 
 ## 我跑了什么

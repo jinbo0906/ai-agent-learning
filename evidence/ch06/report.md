@@ -1,6 +1,6 @@
 # 第 6 章 · Agent 的评估 — 实验记录
 
-> 默认实验：[`chapter6/public-health-reporting-eval`](../../chapter6/public-health-reporting-eval/) 🔧 —— 【修正 B】该项目 README 明确只有 5 个确定性任务，而评估集 >=20 才有统计意义
+> 默认实验：[`chapter6/public-health-reporting-eval`](../../../chapter6/public-health-reporting-eval/) 🔧 —— 【修正 B】该项目 README 明确只有 5 个确定性任务，而评估集 >=20 才有统计意义
 > ⚠️ 这里出现的**每个数字**都要能在 `lab/results/summary.json` 里找到。
 
 ## 我跑了什么

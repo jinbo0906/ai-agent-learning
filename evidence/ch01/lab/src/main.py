@@ -799,7 +799,11 @@ def interactive_mode(api_key: str, provider: str = "siliconflow", model: str = N
     
     print("\n" + "="*60)
     print("INTERACTIVE MODE - Context-Aware Agent")
-    print(f"Provider: {current_provider.upper()} | Model: {current_model or 'default'}")
+    # Show the model that will actually take effect (explicit arg >
+    # MODEL_NAME env > provider default), not just the raw CLI value.
+    from config import Config
+    display_model = current_model or Config.get_default_model(current_provider)
+    print(f"Provider: {current_provider.upper()} | Model: {display_model}")
     print("="*60)
     print("Available commands:")
     print("  - Type your task/question")
@@ -1098,8 +1102,8 @@ def main():
     parser.add_argument(
         "--provider",
         choices=["siliconflow", "doubao", "kimi", "moonshot", "deepseek", "zhipu", "openrouter"],
-        default="doubao",
-        help="LLM 提供商（默认：doubao；openrouter 或缺失主 key 时经 OpenRouter 兜底）"
+        default=os.getenv("LLM_PROVIDER", "deepseek").lower(),
+        help="LLM 提供商（默认：环境变量 LLM_PROVIDER，未设置时为 deepseek；openrouter 或缺失主 key 时经 OpenRouter 兜底）"
     )
     parser.add_argument(
         "--model",
@@ -1155,8 +1159,9 @@ def main():
             )
             sys.exit(1)
     
-    # Log provider info
-    logger.info(f"Using provider: {args.provider}, model: {args.model or 'default'}")
+    # Log provider info (show the model that will actually take effect)
+    from config import Config
+    logger.info(f"Using provider: {args.provider}, model: {args.model or Config.get_default_model(args.provider)}")
     
     # Execute based on mode
     if args.mode == "single":

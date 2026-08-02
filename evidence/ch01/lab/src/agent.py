@@ -354,7 +354,9 @@ class ContextAwareAgent:
                 "'kimi', 'moonshot', 'deepseek', 'zhipu', or 'openrouter'"
             )
         base_url, default_model = provider_defaults[self.provider]
-        resolved_model = model or default_model
+        # Model resolution: explicit arg > MODEL_NAME env override > provider default
+        # (keeps behavior consistent with Config.get_default_model()).
+        resolved_model = model or os.getenv("MODEL_NAME") or default_model
 
         # Universal OpenRouter fallback: if the primary provider key is missing
         # but OPENROUTER_API_KEY is present, route through OpenRouter with a

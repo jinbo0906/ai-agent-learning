@@ -1,6 +1,6 @@
 # 第 2 章 · 上下文工程 — 实验记录
 
-> 默认实验：[`chapter2/context-compression`](../../chapter2/context-compression/) ⚠️ —— ★★★ 难度，API 消耗较大，先设预算
+> 默认实验：[`chapter2/context-compression`](../../../chapter2/context-compression/) ⚠️ —— ★★★ 难度，API 消耗较大，先设预算
 > ⚠️ 这里出现的**每个数字**都要能在 `lab/results/summary.json` 里找到。
 
 ## 我跑了什么

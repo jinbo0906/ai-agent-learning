@@ -1,6 +1,6 @@
 # 第 9 章 · 多模态与实时交互 — 实验记录
 
-> 默认实验：[`chapter9/streaming-speech`](../../chapter9/streaming-speech/) 🔧 —— 【修正 C】其 README 明确必须用 OpenAI 直连 Key（whisper-1 / tts-1），OpenRouter 无音频端点无法回退。原方案只字未提
+> 默认实验：[`chapter9/streaming-speech`](../../../chapter9/streaming-speech/) 🔧 —— 【修正 C】其 README 明确必须用 OpenAI 直连 Key（whisper-1 / tts-1），OpenRouter 无音频端点无法回退。原方案只字未提
 > ⚠️ 这里出现的**每个数字**都要能在 `lab/results/summary.json` 里找到。
 
 ## 我跑了什么

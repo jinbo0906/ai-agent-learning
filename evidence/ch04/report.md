@@ -1,6 +1,6 @@
 # 第 4 章 · 工具 — 实验记录
 
-> 默认实验：[`chapter4/active-tool-discovery`](../../chapter4/active-tool-discovery/) ✅
+> 默认实验：[`chapter4/active-tool-discovery`](../../../chapter4/active-tool-discovery/) ✅
 > ⚠️ 这里出现的**每个数字**都要能在 `lab/results/summary.json` 里找到。
 
 ## 我跑了什么

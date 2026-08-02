@@ -1,6 +1,6 @@
 # 第 8 章 · Agent 的持续进化 — 实验记录
 
-> 默认实验：[`chapter8/trajectory-verifier`](../../chapter8/trajectory-verifier/) ✅ —— 第一步用它，第二步再从 alternatives 里选一个
+> 默认实验：[`chapter8/trajectory-verifier`](../../../chapter8/trajectory-verifier/) ✅ —— 第一步用它，第二步再从 alternatives 里选一个
 > ⚠️ 这里出现的**每个数字**都要能在 `lab/results/summary.json` 里找到。
 
 ## 我跑了什么

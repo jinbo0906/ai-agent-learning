@@ -1,6 +1,6 @@
 # 第 3 章 · 用户记忆和知识库 — 实验记录
 
-> 默认实验：[`chapter3/retrieval-pipeline`](../../chapter3/retrieval-pipeline/) ✅ —— 已含 dense+sparse+fusion+rerank 与离线 evaluate.py
+> 默认实验：[`chapter3/retrieval-pipeline`](../../../chapter3/retrieval-pipeline/) ✅ —— 已含 dense+sparse+fusion+rerank 与离线 evaluate.py
 > ⚠️ 这里出现的**每个数字**都要能在 `lab/results/summary.json` 里找到。
 
 ## 我跑了什么

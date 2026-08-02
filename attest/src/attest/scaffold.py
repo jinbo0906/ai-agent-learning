@@ -52,7 +52,7 @@ def _connects_quiz_block(unit: dict) -> str:
 def _lab_line(unit: dict, depth: int) -> str:
     lab = unit.get("default_lab") or {}
     path, status = lab.get("path"), lab.get("status", "ok")
-    up = "../" * depth
+    up = "../" * (depth + 1)   # 多一层：从本仓库根目录跳到书稿仓库
     if not path:
         note = lab.get("note", "")
         return f"⚠️ **本章无固定默认实验** —— {note}\n>\n> 见下方「实验路径修正」，按你的算力条件三选一。"
@@ -180,13 +180,20 @@ def start(unit_id: str, force: bool = False) -> Path:
     target = unit_dir(unit)
     target.mkdir(parents=True, exist_ok=True)
 
-    written, skipped = [], []
+    written, skipped, protected = [], [], []
     for tmpl in ("notes.md", "report.md", "article.md", "quiz.md", "defense.md"):
         dest = target / tmpl
-        if dest.exists() and not force:
-            skipped.append(tmpl)
-            continue
-        dest.write_text(render(tmpl, unit), encoding="utf-8")
+        fresh = render(tmpl, unit)
+        if dest.exists():
+            if not force:
+                skipped.append(tmpl)
+                continue
+            # --force 只重新生成还没动过的文件。
+            # 写过内容的一律不覆盖 —— 手一滑就没了，没有任何理由冒这个险。
+            if dest.read_text(encoding="utf-8") != fresh:
+                protected.append(tmpl)
+                continue
+        dest.write_text(fresh, encoding="utf-8")
         written.append(tmpl)
 
     for sub in REQUIRED_LAB:
@@ -224,7 +231,7 @@ def start(unit_id: str, force: bool = False) -> Path:
             json.dumps(_init_state(unit), ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
 
-    _print_briefing(unit, written, skipped)
+    _print_briefing(unit, written, skipped, protected)
     return target
 
 
@@ -273,7 +280,8 @@ def snapshot_lab(unit_id: str) -> Path | None:
     return dst
 
 
-def _print_briefing(unit: dict, written: list[str], skipped: list[str]) -> None:
+def _print_briefing(unit: dict, written: list[str], skipped: list[str],
+                    protected: list[str] | None = None) -> None:
     week = unit.get("week", [])
     week_s = f"{week[0]}–{week[-1]}" if len(week) > 1 else (str(week[0]) if week else "?")
     bar = "─" * 64
@@ -321,6 +329,9 @@ def _print_briefing(unit: dict, written: list[str], skipped: list[str]) -> None:
         print(f"  ✅ 已生成：{', '.join(written)}")
     if skipped:
         print(f"  ⏭️  已存在跳过：{', '.join(skipped)}（要覆盖用 --force）")
+    if protected:
+        print(f"  🔒 已有内容，--force 也不覆盖：{', '.join(protected)}")
+        print("     （要重来先手工删掉那个文件）")
     print(f"  📁 evidence/{unit['id']}/\n{bar}\n")
 
 

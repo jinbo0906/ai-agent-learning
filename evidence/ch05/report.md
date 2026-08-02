@@ -1,6 +1,6 @@
 # 第 5 章 · Coding Agent 与代码生成 — 实验记录
 
-> 默认实验：[`chapter5/coding-agent`](../../chapter5/coding-agent/) ✅
+> 默认实验：[`chapter5/coding-agent`](../../../chapter5/coding-agent/) ✅
 > ⚠️ 这里出现的**每个数字**都要能在 `lab/results/summary.json` 里找到。
 
 ## 我跑了什么
