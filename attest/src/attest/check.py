@@ -33,7 +33,8 @@ class Result:
 
 H2 = re.compile(r"^## +(.+?)\s*$", re.M)
 HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
-PLACEHOLDER = re.compile(r"\b(TODO|TBD|FIXME|XXX)\b|待填写|待补充|占位")
+# 注意：不要加「占位」这类会出现在正文分析里的普通词，否则误报
+PLACEHOLDER = re.compile(r"\b(TODO|TBD|FIXME|XXX)\b|待填写|待补充")
 EMPTY_ROW = re.compile(r"^\|(?:\s*\|)+\s*$")
 
 SECRET_PATTERNS = [
@@ -140,14 +141,19 @@ def check_placeholders(d: Path, unit: dict) -> Result:
     return Result("必填项已完成", PASS)
 
 
-H3 = re.compile(r"^### +(.+?)\s*$", re.M)
+def _norm(s: str) -> str:
+    """归一化：去掉空白和 Markdown 记号，用于跨格式定位问题。"""
+    return re.sub(r"[\s*#`>\-—·。，,.]+", "", s)
 
 
 def check_must_answer(d: Path, unit: dict) -> Result:
-    """必答问题逐题作答 —— 这是全章最核心的检验点，不能只有标题没有答案。
+    """必答问题逐题作答 —— 全章最核心的检验点。
 
-    答不出来写"我不确定，因为……"也算数（那是真实的学习状态，是有用的数据），
-    但不能整段空着。
+    按**问题文本**定位，不依赖任何特定写法：`### Q1. …` / `1. …` / `- …`
+    都能识别（早期版本只认 H3，导致纯列表格式被静默放过）。
+
+    答不出来写"我不确定，因为……"也算数 —— 那是真实的学习状态，是有用的数据。
+    空着才是问题。
     """
     questions = unit.get("must_answer") or []
     if not questions:
@@ -157,21 +163,38 @@ def check_must_answer(d: Path, unit: dict) -> Result:
     if not path.exists():
         return Result("必答问题已作答", FAIL, "notes.md 不存在")
 
-    body = _sections(path.read_text(encoding="utf-8")).get("必答问题", "")
-    parts = H3.split(body)
-    answered, unanswered = 0, []
-    for i in range(1, len(parts), 2):
-        title, ans = parts[i].strip(), parts[i + 1]
+    body = _sections(path.read_text(encoding="utf-8")).get("必答问题")
+    if body is None:
+        return Result("必答问题已作答", FAIL, "notes.md 里没有「必答问题」这一节")
+
+    lines = body.splitlines()
+    norm_lines = [_norm(l) for l in lines]
+
+    # 用问题正文的前 14 个有效字符做锚点定位
+    locs: list[int | None] = []
+    for q in questions:
+        key = _norm(q)[:14]
+        locs.append(next((i for i, nl in enumerate(norm_lines) if key and key in nl), None))
+
+    answered, missing = 0, []
+    for j, (q, idx) in enumerate(zip(questions, locs), start=1):
+        if idx is None:
+            missing.append(f"notes.md · 找不到 Q{j}：{q[:26]}…")
+            continue
+        nxt = next((l for l in locs[j:] if l is not None and l > idx), len(lines))
+        ans = "\n".join(lines[idx + 1 : nxt])
+        # 答案也可能直接写在问号后面
+        tail = re.split(r"[？?]", lines[idx], maxsplit=1)
+        if len(tail) > 1 and _norm(tail[1]):
+            ans = tail[1] + "\n" + ans
         if _is_blank(ans):
-            unanswered.append(f"notes.md · {title[:46]}")
+            missing.append(f"notes.md · Q{j} 未作答：{q[:26]}…")
         else:
             answered += 1
 
     total = len(questions)
-    if unanswered:
-        return Result(
-            "必答问题已作答", FAIL, f"{answered}/{total} 题已答", unanswered
-        )
+    if missing:
+        return Result("必答问题已作答", FAIL, f"{answered}/{total} 题已答", missing)
     return Result("必答问题已作答", PASS, f"{answered}/{total} 题")
 
 
