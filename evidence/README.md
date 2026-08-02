@@ -11,9 +11,11 @@ evidence/ch01/
 ├── article.md          逐章公开文章（唯一对外发布的产出）
 ├── quiz.md             章节测试作答（四部分 25/30/25/20）
 ├── defense.md          个性化答辩记录（防 AI 代写的核心机制）
-├── lab/
-│   ├── src/            书中默认实验的**快照** —— 所有改动只写这里
-│   ├── provenance.json 快照来源（书中原始目录是只读基线，不回写）
+├── lab/                书中实验的**快照**，按项目名分目录 —— 所有改动只写这里
+│   ├── context/        默认实验（curriculum 的 default_lab）
+│   ├── web-search-agent/   同一章的其他实验，按需 snapshot
+│   ├── search-codegen/
+│   ├── provenance.json 每个项目的来源与改动记录（书中原目录是只读基线，不回写）
 │   ├── reproduce.json  复现契约：argv / cwd / 环境 / 预期结果
 │   ├── results/
 │   │   └── summary.json   机器可读结果 ← 整套证据体系钉在这个文件上
@@ -47,7 +49,7 @@ evidence/ch01/
 
 ## 核心规则
 
-1. **书中原始实验目录是只读基线。** `attest snapshot N` 把它复制到 `lab/src/`，
+1. **书中原始实验目录是只读基线。** `attest snapshot N` 把它复制到 `lab/<项目名>/`，
    所有消融、深改、测试都在快照里进行，`lab/provenance.json` 记录来源。
 
 2. **`summary.json` 是证据体系的锚点。** 报告和文章里出现的每个数字，
@@ -71,7 +73,9 @@ evidence/ch01/
 
 ```bash
 make start CH=1        # 实例化第 1 章 + 打印本章目标/必答问题/实验要求
-make snapshot CH=1     # 把 chapter1/context 快照到 lab/src/
+make snapshot CH=1     # 默认实验 -> lab/context/
+python -m attest snapshot 1 web-search-agent   # 再加一个
+python -m attest snapshot 1 --all              # 本章全部
 make check CH=1        # 随时跑：<2 秒，零成本
 make status            # 全书总览
 ```

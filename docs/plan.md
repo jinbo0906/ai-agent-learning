@@ -232,7 +232,7 @@ CI（可选，非关键路径）  GitHub Actions        ← 每周一次回归 +
 ```
 ① 定标   attest start ch0N
          → 打印本章目标、必答问题、实验要求、与前置章节的连接点
-         → 自动把默认实验目录快照到 evidence/ch0N/lab/src/
+         → 自动把默认实验快照到 evidence/ch0N/lab/<项目名>/
 
 ② 学做   通读 → 精读 → 概念图 → 跑基线 → 改一个变量 → 记录
          → 全程本地，随时 attest check 拿秒级结构反馈
@@ -657,7 +657,7 @@ attest/
 | 命令 | 耗时 | 作用 |
 |---|---|---|
 | `attest init <curriculum.yml>` | 秒 | 初始化工作区 |
-| `attest start ch07` | 秒 | 打印本章目标/必答问题/实验要求/前置连接；把 `default_lab` 快照到 `evidence/ch07/lab/src/` 并记录来源 |
+| `attest start ch07` | 秒 | 打印本章目标/必答问题/实验要求/前置连接；把 `default_lab` 快照到 `evidence/ch07/lab/<项目名>/` 并记录来源 |
 | `attest check ch07` | **&lt;2 s** | 第 1 层确定性检查。**写作过程中随时跑** |
 | `attest quiz ch07` | ~20 s | 基于正文 + 你的笔记 + 你的实验 + 历史错题生成本章测试 |
 | `attest selfscore ch07` | 秒 | **先自评四维分数**（在看 Judge 结果之前）← 校准误差的输入 |

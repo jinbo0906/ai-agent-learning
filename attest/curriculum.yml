@@ -115,8 +115,9 @@ units:
       - 记录成功率、平均步数、延迟、token、循环异常
       - 解释每组结果背后的因果链
     alternatives:
-      - chapter1/web-search-agent
+      - chapter1/web-search-agent          # Kimi 内置工具：服务端工具 vs 客户端工具
       - chapter1/search-codegen
+      - chapter1/learning-from-experience  # RL vs LLM 样本效率：先验知识为何胜过算法
     article:
       title: 模型不是 Agent：真正决定效果的 Harness 是什么
       must_include:

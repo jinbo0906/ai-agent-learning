@@ -4,7 +4,7 @@
 
 已实现（v0）：
   start [N|all]    实例化章节证据包，打印本章目标 / 必答问题 / 实验要求
-  snapshot N       把书中默认实验快照到 evidence/chNN/lab/src/
+  snapshot N [名字] 把书中实验快照到 evidence/chNN/lab/<项目名>/（--all 全部）
   check N          第 1 层确定性检查（<2 秒，零成本，随时可跑）
   status           全书进度与质量总览
   ping             验证 LLM 端点、密钥、模型可用，并报告成本与延迟
@@ -110,9 +110,9 @@ def main(argv: list[str] | None = None) -> int:
     if cmd == "snapshot":
         from .scaffold import snapshot_lab
         if not args:
-            print("用法：python -m attest snapshot <N>")
+            print("用法：python -m attest snapshot <N> [项目名|--all]")
             return 2
-        snapshot_lab(args[0])
+        snapshot_lab(args[0], "--all" if all_stages else (args[1] if len(args) > 1 else None))
         return 0
 
     if cmd == "check":

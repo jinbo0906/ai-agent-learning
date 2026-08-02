@@ -1,22 +1,41 @@
 {
-  "source": "chapter1/context",
   "source_repo": "..",
   "upstream": "https://github.com/bojieli/ai-agent-book",
-  "target": "lab/src",
   "mode": "snapshot",
-  "_note": "书中原始目录是只读基线；所有学习改动只写这份快照。改了什么见 modifications 与 git diff。",
-  "modifications": [
+  "_note": "书中原始目录是只读基线；所有学习改动只写这份快照。改了什么见各项的 modifications 与 git diff。",
+  "labs": [
     {
-      "file": "quickstart.py",
-      "what": "修复 provider 与 API key 不匹配的 bug：新增 detect_provider()，按 LLM_PROVIDER 显式指定 > 已配置 key 扫描顺序自动匹配"
+      "dir": "context",
+      "source": "chapter1/context",
+      "modifications": [
+        {
+          "file": "quickstart.py",
+          "what": "修复 provider 与 API key 不匹配的 bug：新增 detect_provider()，按 LLM_PROVIDER 显式指定 > 已配置 key 扫描顺序自动匹配"
+        },
+        {
+          "file": "agent.py",
+          "what": "模型解析支持 MODEL_NAME 环境变量覆盖（显式参数 > MODEL_NAME > provider 默认）"
+        },
+        {
+          "file": "main.py",
+          "what": "--provider 默认值改为读 LLM_PROVIDER；启动横幅与日志显示实际生效的模型"
+        }
+      ]
     },
     {
-      "file": "agent.py",
-      "what": "模型解析支持 MODEL_NAME 环境变量覆盖（显式参数 > MODEL_NAME > provider 默认）"
+      "dir": "learning-from-experience",
+      "source": "chapter1/learning-from-experience",
+      "modifications": []
     },
     {
-      "file": "main.py",
-      "what": "--provider 默认值改为读 LLM_PROVIDER；启动横幅与日志显示实际生效的模型而非原始 CLI 值"
+      "dir": "search-codegen",
+      "source": "chapter1/search-codegen",
+      "modifications": []
+    },
+    {
+      "dir": "web-search-agent",
+      "source": "chapter1/web-search-agent",
+      "modifications": []
     }
   ]
 }

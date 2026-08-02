@@ -235,40 +235,54 @@ def start(unit_id: str, force: bool = False) -> Path:
     return target
 
 
-def snapshot_lab(unit_id: str) -> Path | None:
-    """把课程规格里的 default_lab 快照到本章 lab/src/，并记录来源。
+IGNORE = shutil.ignore_patterns(
+    "__pycache__", "*.pyc", ".git", ".venv", "venv", "node_modules", "*.egg-info", ".env"
+)
 
-    书中原始实验目录是只读基线，所有改动都发生在这份快照里。
-    """
-    unit = find_unit(unit_id)
-    lab = unit.get("default_lab") or {}
-    rel = lab.get("path")
-    if not rel:
-        print(f"⚠️  {unit['id']} 没有固定默认实验（见 report.md 的实验路径修正），跳过快照")
-        return None
 
-    src = book_repo() / rel
-    if not src.exists():
-        print(f"❌ 源目录不存在：{src}")
-        return None
+def _candidates(unit: dict) -> list[str]:
+    """本章可快照的项目：默认实验 + 课程规格里列出的替代/推荐实验。"""
+    out = []
+    default = (unit.get("default_lab") or {}).get("path")
+    if default:
+        out.append(default)
+    out += [p for p in (unit.get("alternatives") or []) if p not in out]
+    for p in (unit.get("fix") or {}).get("paths", []):
+        if p.get("lab") and p["lab"] not in out:
+            out.append(p["lab"])
+    return out
 
-    dst = unit_dir(unit) / "lab" / "src"
-    if any(p.name != ".gitkeep" for p in dst.iterdir()) if dst.exists() else False:
-        print(f"⚠️  {dst} 已有内容，跳过（要重来先手工清空）")
-        return dst
 
-    shutil.copytree(src, dst, dirs_exist_ok=True, ignore=shutil.ignore_patterns(
-        "__pycache__", "*.pyc", ".git", ".venv", "venv", "node_modules", "*.egg-info"
-    ))
-    (unit_dir(unit) / "lab" / "provenance.json").write_text(
+def _write_provenance(unit: dict) -> None:
+    """扫描 lab/ 下的项目目录，重建 provenance（保留已记录的 modifications）。"""
+    lab_dir = unit_dir(unit) / "lab"
+    prov_path = lab_dir / "provenance.json"
+    old = {}
+    if prov_path.exists():
+        try:
+            for e in json.loads(prov_path.read_text(encoding="utf-8")).get("labs", []):
+                old[e["dir"]] = e.get("modifications", [])
+        except (json.JSONDecodeError, KeyError, TypeError):
+            pass
+
+    known = {p.rsplit("/", 1)[-1]: p for p in _candidates(unit)}
+    labs = []
+    for d in sorted(p for p in lab_dir.iterdir() if p.is_dir() and p.name not in ("results", "tests")):
+        labs.append({
+            "dir": d.name,
+            "source": known.get(d.name, f"chapter{unit['num']}/{d.name}"),
+            "modifications": old.get(d.name, []),
+        })
+
+    prov_path.write_text(
         json.dumps(
             {
-                "source": rel,
-                "source_repo": load_curriculum()["meta"]["book_repo"],  # 相对路径，便于他人复现
+                "source_repo": load_curriculum()["meta"]["book_repo"],
                 "upstream": load_curriculum()["meta"].get("upstream"),
-                "target": "lab/src",
                 "mode": "snapshot",
-                "_note": "书中原始目录是只读基线；所有学习改动只写这份快照",
+                "_note": "书中原始目录是只读基线；所有学习改动只写这份快照。"
+                         "改了什么见各项的 modifications 与 git diff。",
+                "labs": labs,
             },
             ensure_ascii=False,
             indent=2,
@@ -276,8 +290,60 @@ def snapshot_lab(unit_id: str) -> Path | None:
         + "\n",
         encoding="utf-8",
     )
-    print(f"✅ 已快照 {rel} -> {dst.relative_to(dst.parents[3])}")
-    return dst
+
+
+def snapshot_lab(unit_id: str, which: str | None = None) -> Path | None:
+    """把书中的实验项目快照到 `lab/<项目名>/`，并记录来源。
+
+    一章可以有多个实验（第 1 章 4 个、第 3 章 13 个、第 7 章 16 个），
+    所以按项目名分目录，而不是摊平进一个 src/。
+
+        attest snapshot 1                    # 默认实验
+        attest snapshot 1 web-search-agent   # 再加一个
+        attest snapshot 1 --all              # 本章全部候选
+
+    书中原始目录是只读基线，所有改动都发生在快照里。
+    """
+    unit = find_unit(unit_id)
+    cands = _candidates(unit)
+    if not cands:
+        print(f"⚠️  {unit['id']} 没有可快照的实验（见 report.md 的实验路径修正）")
+        return None
+
+    if which in (None, "default"):
+        targets = cands[:1]
+    elif which == "--all":
+        targets = cands
+    else:
+        targets = [p for p in cands if p.rsplit("/", 1)[-1] == which or p == which]
+        if not targets:
+            names = ", ".join(p.rsplit("/", 1)[-1] for p in cands)
+            print(f"❌ {unit['id']} 没有实验 {which!r}；可选：{names}")
+            return None
+
+    last = None
+    for rel in targets:
+        src = book_repo() / rel
+        name = rel.rsplit("/", 1)[-1]
+        dst = unit_dir(unit) / "lab" / name
+        if not src.exists():
+            print(f"❌ 源目录不存在：{rel}")
+            continue
+        if dst.exists() and any(p.name != ".gitkeep" for p in dst.iterdir()):
+            print(f"⏭️  lab/{name}/ 已存在，跳过（要重来先手工删掉）")
+            last = dst
+            continue
+        shutil.copytree(src, dst, dirs_exist_ok=True, ignore=IGNORE)
+        print(f"✅ {rel}  ->  lab/{name}/")
+        last = dst
+
+    _write_provenance(unit)
+    others = [p.rsplit("/", 1)[-1] for p in cands
+              if not (unit_dir(unit) / "lab" / p.rsplit("/", 1)[-1]).exists()]
+    if others:
+        print(f"   本章还有：{', '.join(others)}"
+              f"（要就跑 attest snapshot {unit['num']} <名字>，或 --all）")
+    return last
 
 
 def _print_briefing(unit: dict, written: list[str], skipped: list[str],

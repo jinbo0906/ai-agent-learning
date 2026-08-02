@@ -70,4 +70,8 @@ def book_repo() -> Path:
 
 # 每章证据包必须存在的六类产出（方案 §2.3 / §5.2）
 REQUIRED_ARTIFACTS = ["notes.md", "report.md", "article.md", "quiz.md", "defense.md"]
-REQUIRED_LAB = ["lab/results", "lab/src", "lab/tests"]
+
+# lab/ 下按**项目名**分目录：lab/context/、lab/web-search-agent/ …
+# 一章可以有多个实验（第 1 章 4 个、第 3 章 13 个、第 7 章 16 个），
+# 早期版本把 default_lab 摊平进 lab/src/，既丢了项目名也装不下第二个。
+REQUIRED_LAB = ["lab/results", "lab/tests"]

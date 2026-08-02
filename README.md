@@ -43,7 +43,7 @@ cp .env.example .env        # 填 API Key；.env 已在 .gitignore
 
 # 2. 开始第 1 章
 make start CH=1             # 打印本章目标 / 必答问题 / 实验要求，生成证据包
-make snapshot CH=1          # 把 chapter1/context 快照到 evidence/ch01/lab/src/
+make snapshot CH=1          # chapter1/context -> evidence/ch01/lab/context/
 
 # 3. 学习过程中随时（< 2 秒，零成本）
 make check CH=1             # 结构、占位符、证据可定位、密钥扫描
@@ -86,7 +86,7 @@ make status
 ├── evidence/                   ③ 证据包 —— 十章，每章六类产出
 │   └── ch01…ch10/
 │       ├── notes.md  report.md  article.md  quiz.md  defense.md
-│       ├── lab/{src,results/summary.json,tests,reproduce.json}
+│       ├── lab/{<项目名>/,results/summary.json,tests,reproduce.json}
 │       └── .attest/state.json
 ├── progress/                   进度、复习队列、旗舰选择、周复盘
 ├── docs/plan.md                完整学习方案（含对原方案的评估）
