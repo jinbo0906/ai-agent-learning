@@ -34,7 +34,9 @@ class Result:
 H2 = re.compile(r"^## +(.+?)\s*$", re.M)
 HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
 # 注意：不要加「占位」这类会出现在正文分析里的普通词，否则误报
-PLACEHOLDER = re.compile(r"\b(TODO|TBD|FIXME|XXX)\b|待填写|待补充")
+PLACEHOLDER = re.compile(
+    r"(?i)^[ \t]*(?:[-*][ \t]+)?(?:TODO|TBD|FIXME|XXX|待填写|待补充)[ \t]*(?:[:：][ \t]*)?$"
+)
 EMPTY_ROW = re.compile(r"^\|(?:\s*\|)+\s*$")
 
 SECRET_PATTERNS = [
@@ -70,6 +72,8 @@ def _is_blank(body: str) -> bool:
         if re.fullmatch(r"[^:：]{0,40}[:：]", s):     # "- 模型：" 这种未填字段
             continue
         if s.startswith("```"):
+            continue
+        if s.startswith("#"):  # 子问题标题不是答案
             continue
         kept.append(s)
     return not kept
@@ -111,7 +115,7 @@ def check_sections(d: Path, unit: dict) -> Result:
             if need not in have:
                 missing.append(f"{name} 缺少「{need}」")
     if missing:
-        return Result("必填小节存在", FAIL, f"{len(missing)} 处缺失", missing[:12])
+        return Result("必填小节存在", FAIL, f"{len(missing)} 处缺失", missing)
     return Result("必填小节存在", PASS)
 
 
@@ -130,14 +134,19 @@ def check_placeholders(d: Path, unit: dict) -> Result:
         required = set(_template_h2(name))
         # optional 分界线以下的内容整体跳过
         head = text.split(OPTIONAL_MARKER, 1)[0]
-        for m in PLACEHOLDER.finditer(HTML_COMMENT.sub("", head)):
-            line = text[: m.start()].count("\n") + 1
-            todo.append(f"{name}:{line} 占位符 {m.group(0)!r}")
+        visible = HTML_COMMENT.sub(lambda m: "\n" * m.group(0).count("\n"), head)
+        in_code = False
+        for lineno, line in enumerate(visible.splitlines(), start=1):
+            if line.lstrip().startswith("```"):
+                in_code = not in_code
+                continue
+            if not in_code and PLACEHOLDER.fullmatch(line):
+                todo.append(f"{name}:{lineno} 占位符 {line.strip()!r}")
         for title, body in _sections(head).items():
             if title in required and _is_blank(body):
                 todo.append(f"{name} · {title}")
     if todo:
-        return Result("必填项已完成", FAIL, f"还差 {len(todo)} 项", todo[:15])
+        return Result("必填项已完成", FAIL, f"还差 {len(todo)} 项", todo)
     return Result("必填项已完成", PASS)
 
 
